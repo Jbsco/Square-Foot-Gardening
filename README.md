@@ -1,11 +1,9 @@
-/*******************************************************************************
+
  *  INSTRUCTIONS:
  * Create a program that helps with managing a square foot garden.
  * 
  * Refactor 8 - Jacob B. Seman
-*******************************************************************************/
 
-/*******************************************************************************
  *  MENU OPTIONS:
  * clear display area, ~20 lines, add more if planter exceeds height
  * print prompt/instructions/information
@@ -29,9 +27,9 @@
  *  ADD:
  * add a planter or plant to the current garden
  * take input from user - planter:
- *                          sizeX,sizeY
- *                        plant:
- *                          name,size,quantity
+ *                        - sizeX,sizeY
+ *                      - plant:
+ *                        - name,size,quantity
  * compute garden arrangement after new planter or plant
  * print updated garden
  * if a new planter sizeY exceeds 16, display height will be increased
@@ -41,9 +39,9 @@
  * change a planter or plant currently in the garden
  * take input from user - change planter,change plant
  * take input from user - planter number:
- *                          sizeX,sizeY
- *                        plant name:
- *                          size,name,quantity
+ *                        - sizeX,sizeY
+ *                      - plant name:
+ *                        - size,name,quantity
  * compute garden arrangement after changing planter or plant
  * print updated garden
  *
@@ -59,14 +57,13 @@
  *  OPTIONS:
  * configure the display height unless a larger planter is overriding this
  * choose a display character for plant fill
- *      lower case plant.name[0]
- *      '-'
- *      '~'
- *      'x'
- *      '.'
+ *    - lower case plant.name[0]
+ *    - '-'
+ *    - '~'
+ *    - 'x'
+ *    - '.'
  *
  *  QUIT:
  * exit program, prompt to save
  * take input from user - yes,no,cancel
  * save if yes, exit program unless cancel
-*******************************************************************************/
