@@ -1,80 +1,90 @@
 /*******************************************************************************
-Instructions
-Create a program that helps with managing a square foot garden.
-
-Refactor 6 - Jacob B. Seman
+ *  INSTRUCTIONS:
+ * Create a program that helps with managing a square foot garden.
+ * 
+ * Refactor 7 - Jacob B. Seman
 *******************************************************************************/
 
 /*******************************************************************************
- Order of Operations:
- clear display area, ~20 lines or so
- print prompt/instructions/information
- take input from user - load,new,quit
-
- load:
- getlines from text file, prompt selections available
- take data from text file per selection
- populate and print saved garden/planters/plants
- take input from user - save,load,new,add,change,remove,quit
-
- new:
- create new empty garden
- take input from user - garden name
- take input from user - save,load,new,add,change,remove,quit
-
- save:
- push current garden/planters/plants configuration to data file
- leave current garden state unchanged
- take input from user - save,load,new,add,change,remove,quit
-
- add:
- add a planter or plant to the current garden
- take input from user - planter:
-                          sizeX,sizeY
-                        plant:
-                          name,size,quantity
- compute garden arrangement after new planter or plant
- print updated garden
- take input from user - save,load,new,add,change,remove,quit
-
- change:
- change a planter or plant currently in the garden
- take input from user - change planter,change plant
- take input from user - planter:
-                          sizeX,sizeY
-                        plant:
-                          size,name,quantity
- compute garden arrangement after changed planter or plant
- print updated garden
- take input from user - save,load,new,add,change,remove,quit
-
- remove:
- remove a planter or plant from the garden
- take input from user - planter,plant
- compute garden arrangement after removed planter or plant
- print updated garden
- take input from user - planter number,plant name
-
- quit:
- exit program, prompt to save
- take input from user - yes,no
- save if yes, exit program
- ******************************************************************************/
+ *  IDEA:
+ * clear display area, ~20 lines, add more if planter exceeds height
+ * print prompt/instructions/information
+ * take input from user - new,save,load,add,change,remove,quit
+ * 
+ *  NEW:
+ * create new empty garden
+ * take input from user - garden name
+ * this name is used to identify data
+ *
+ *  SAVE:
+ * push current garden/planters/plants configuration to data file
+ * leave current garden state unchanged
+ *
+ *  LOAD:
+ * getlines from text file, prompt selections available
+ * take data from text file per selection
+ * populate and print saved garden/planters/plants
+ * take input from user - save,load,new,add,change,remove,quit
+ *
+ *  ADD:
+ * add a planter or plant to the current garden
+ * take input from user - planter:
+ *                          sizeX,sizeY
+ *                        plant:
+ *                          name,size,quantity
+ * compute garden arrangement after new planter or plant
+ * print updated garden
+ * if a new planter sizeY exceeds 16, display height will be increased
+ * accordingly
+ *
+ *  CHANGE:
+ * change a planter or plant currently in the garden
+ * take input from user - change planter,change plant
+ * take input from user - planter number:
+ *                          sizeX,sizeY
+ *                        plant name:
+ *                          size,name,quantity
+ * compute garden arrangement after changing planter or plant
+ * print updated garden
+ *
+ *  REMOVE:
+ * remove a planter or plant from the garden
+ * take input from user - planter,plant
+ * compute garden arrangement after removing planter or plant
+ * print updated garden
+ * 
+ *  HELP:
+ * toggles the introductory help screen
+ * 
+ *  OPTIONS:
+ * configure the display height unless a larger planter is overriding this
+ * choose a display character for plant fill
+ *      lower case plant.name[0]
+ *      '-'
+ *      '~'
+ *      'x'
+ *      '.'
+ *
+ *  QUIT:
+ * exit program, prompt to save
+ * take input from user - yes,no,cancel
+ * save if yes, exit program unless cancel
+*******************************************************************************/
 
 /*******************************************************************************
- * BUG LIST v6
- * -no loading of data yet
- * -printing planters works perfectly but more than one plant causes issues
- *  (a single plant will be populated across all planters perfectly)
- * -no verbose output of excess plant quantities
+ *  TODO: LIST v7
+ * -fix encapsulation
+ * -loading of data yet
+ * -verbose output of allocated and excess plant quantities
 *******************************************************************************/
 
 #include<bits/stdc++.h> // break out into required libraries after completion
 
 using namespace std;
 
-const int DISPHEIGHT=20; // number of lines to use for terminal "UI"
-bool flag=0; // flag for help input
+int DISPHEIGHT=20; // number of lines to use for terminal "UI", change in options
+char FILL='_'; // default character to use when filling space, change in options
+bool flag=1; // flag for help input
 
 class Plant{ // Todo: fix encapsulation
 // to be placed in planters by name, by garden class
@@ -135,11 +145,12 @@ class Planter{ // Todo: fix encapsulation
         }
 		friend istream & operator >> (istream &in,Planter &other){
 			in >> other.sizeX >> other.sizeY;
+            if(other.sizeY>16) DISPHEIGHT=other.sizeY+4; // allow for increasing display height for larger planters
 			return in;
 		}
 };
 
-class Garden{ // Todo: fix encapsulation, load, print
+class Garden{ // Todo: fix encapsulation, load function
 // container for multiple planters, plants - provision for display and user data
     protected:
     public:
@@ -165,7 +176,7 @@ class Garden{ // Todo: fix encapsulation, load, print
             userPlants.push_back(newPlant);
         }
         int countLines(ifstream &inf){  // subroutine for getData
-            inf.open("sfg-v6.txt");
+            inf.open("sfg-v7.txt");
             int i = 0;
             string temp;
             while(getline(inf, temp)){
@@ -175,11 +186,11 @@ class Garden{ // Todo: fix encapsulation, load, print
             return i;
         }
         void getData(ifstream &inf, int n, string* d){  // subroutine for data management
-        //  gets contents of "sfg-v6.txt" line-by-line
+        //  gets contents of "sfg-v7.txt" line-by-line
         //  inf is the ifstream object
         //  n is the number of lines to read in
         //  d is a dynamic array with enough memory to hold the data
-            inf.open("sfg-v6.txt");
+            inf.open("sfg-v7.txt");
             for(int i = 0; i < n; i++){
                 getline(inf, d[i]);
                 // cout << d[i] << endl;
@@ -250,7 +261,7 @@ class Garden{ // Todo: fix encapsulation, load, print
                 
             }
             // else write new line
-            ofstream fout("sfg-v6.txt");
+            ofstream fout("sfg-v7.txt");
             for(int i = 0; i < lineNumber; i++){
                 fout << data[i] << endl;
             }
@@ -259,151 +270,106 @@ class Garden{ // Todo: fix encapsulation, load, print
             fout.close();
 
         }
-        void print(bool flag){ // Todo print plant fitment quantities, issues (if any)
-            if(dataName==""||flag){ // if dataName is empty (ex. after new>reset) or help flag is toggled
-			    printf("\033[%iA",DISPHEIGHT-1); // move to top of display area
+        void newPrint(bool flag){ // Todo print plant fitment quantities, issues (if any)
+            if(flag){ // if flag is toggled
+			    printf("\033[%iA\r",DISPHEIGHT-1); // move to top of display area
                 for(int i=0;i<DISPHEIGHT;i++){ // print instructions/usage information
                     cout << "\33[2K";
-			        if(i==0) cout << "\rSquare Foot Gardening v0.6 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
+			        if(i==0) cout << "Square Foot Gardening v0.7 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
                     if(i==2) cout << "Welcome to Square Foot Gardening!";
                     if(i==3) cout << "You may save your Garden by name,";
                     if(i==4) cout << "and restore it by using the 'save'/'load' functions.";
                     if(i==6) cout << "A Garden may have multiple Planters of different size.";
                     if(i==7) cout << "You may add Plants of any size and name.";
-                    if(i==9) cout << "The program will attempt to place the largest Plants first,";
+                    if(i==9) cout << "The program will place the largest Plants first,";
                     if(i==10) cout << "and will alert you if any Plants will not fit in available Planter space.";
                     if(i==12) cout << "This message may be accessed at any time by typing \"help\",";
-                    if(i==13) cout << "type help again to return to the Garden display.";
+                    if(i==13) cout << "type help again to toggle the Garden display.";
 			        if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
-			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, help, quit: ";
+			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, add, change, remove, help, options, quit: ";
                 }
             }
             else{
-                // Todo place plants according to size/fitment and quantity
-                // print available planters in order by number
-                // print available plants in planters by size, placed amount should not exceed quantity per plant
-                // sort userPlants by userPlants[i].size and place largest first
-			    printf("\033[%iA",DISPHEIGHT-1); // move to top of display area
-                int scanline=1;
-                for(int i=0;i<DISPHEIGHT;i++){
-                    cout << "\33[2K";
-			        if(i==0) cout << "\rSquare Foot Gardening v0.6 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
-                    /* test output - just planters and plants w/attributes in text form
-                    if(i==2){
-                        // prints planters and attributes by number
-                        for(int j=0;j<(int)userPlanters.size();j++){
-                            cout << "Planter #: " << userPlanters[j].number << ", " << userPlanters[j].sizeX << "x" << userPlanters[j].sizeY;
-                            if(j!=(int)userPlanters.size()-1) cout << "; ";
-                        }                        
-                    }
-                    if(i==4){
-                        // prints plants and attributes by name
-                        for(int j=0;j<(int)userPlants.size();j++){
-                            cout << "Plant: " << userPlants[j].name << ", size: " << userPlants[j].size << ", qty:" << userPlants[j].quantity;
-                            if(j!=(int)userPlants.size()-1) cout << "; ";
-                        }                        
-                    }
-                    */
-                    if(i==scanline){ // testing variable line checking
-                        if(i==1){ // print corresponding number headers above each planter
-                            for(int j=0;j<(int)userPlanters.size();j++){
-                                for(int k=0;k<userPlanters[j].sizeX*2+1;k++){
-                                    if(k==0) cout << userPlanters[j].number; // print planter number on upper left
-                                    else if(k==userPlanters[j].sizeX*2) cout << ' '; // prevent overhanging upper right corner
-                                    else cout << '_'; // print upper border
-                                }
-                                cout << ' '; // correct spacing between planters
-                            }
-                        }
-                        if(i>1&&i<DISPHEIGHT-1){ // print lines for planters
-                            for(int j=0;j<(int)userPlanters.size();j++){ // print cells per number of planters
-                                for(int k=0;k<userPlanters[j].sizeX;k++){ // print cells per size of planter[j]
-                                    if(scanline-2<userPlanters[j].sizeY&&k==0) cout << '|';
-                                    if(scanline-2<userPlanters[j].sizeY) cout << "_|"; // print if within sizeY
-                                    else{
-                                        if(k==0) cout << ' ';
-                                        cout << "  "; // double space if sizeY exceeded
+                // printing all planters
+                sort(userPlants.begin(),userPlants.end(),greater<Plant>()); // sort Plant vector by Plant.size, descending
+                char cells[(int)userPlanters.size()][50][50]; // initialize char array cells[planter qty][x][y]
+                memset(cells,'_',sizeof(cells));
+                int qty[(int)userPlants.size()];
+                for(int j=0;j<(int)userPlants.size();j++) qty[j]=userPlants[j].quantity;
+                // *big breath* populate array for planter fill
+                for(int j=0;j<(int)userPlanters.size();j++){ // per planter
+                    for(int k=0;k<userPlanters[j].sizeY;k++){ // per planter sizeY
+                        for(int l=0;l<userPlanters[j].sizeX;l++){ // per planter sizeX
+                            for(int m=0;m<(int)userPlants.size();m++){ // per plant
+                                // check clearance to right and below current pos
+                                bool check=1;
+                                for(int cI=0;cI<userPlants[m].size;cI++){
+                                    for(int tI=0,tJ=0;tJ<userPlants[m].size;tI++){
+                                        if(cells[j][l+tI][k+tJ]!='_') check=0;
+                                        if(tI+1==userPlants[m].size) tI=-1,tJ++;
                                     }
                                 }
-                                cout << ' ';
+                                if(cells[j][l][k]=='_'
+                                    &&check
+                                    &&userPlants[m].size<=userPlanters[j].sizeX-l
+                                    &&userPlants[m].size<=userPlanters[j].sizeY-k
+                                    &&qty[m]>0){ // if array space unnallocated, clearance and plant.qty available
+                                    for(int tI=0,tJ=0;tJ<userPlants[m].size;tI++){ // offsets based on plant[m].size
+                                        if(tI==0&&tJ==0){
+                                            cells[j][l][k]=toupper(userPlants[m].name.at(0)); // upper left cell -> make upper case
+                                            qty[m]--;
+                                        }
+                                        else{
+                                            if(FILL=='_') cells[j][l+tI][k+tJ]=tolower(userPlants[m].name.at(0)); // all other cells in plant size range -> make lower case
+                                            else cells[j][l+tI][k+tJ]=FILL; // if FILL is set by user use this char instead
+                                        }
+                                        if(tI+1==userPlants[m].size) tI=-1,tJ++; // reset x pos, increment y pos
+                                    }
+                                }
                             }
                         }
-                        if(scanline<DISPHEIGHT-1) scanline++;
+                    }
+                }
+                // cell array should be populated, print array
+                printf("\033[%iA",DISPHEIGHT-1);
+                for(int i=0;i<DISPHEIGHT;i++){
+                    cout << "\33[2K";
+                    if(i==0) cout << "Square Foot Gardening v0.7 - by Jacob Seman";
+                    if(i==1){ // print corresponding number headers above each planter
+                        for(int j=0;j<(int)userPlanters.size();j++){
+                            for(int k=0;k<userPlanters[j].sizeX*2+1;k++){
+                                if(k==0) cout << userPlanters[j].number; // print planter number on upper left
+                                else if(k==userPlanters[j].sizeX*2) cout << ' '; // prevent overhanging upper right corner
+                                else cout << '_'; // print upper border
+                            }
+                            cout << ' '; // correct spacing between planters
+                        }
+                    }
+                    if(i>1&&i<DISPHEIGHT-2){
+                        for(int j=0;j<(int)userPlanters.size();j++){
+                            for(int k=0;k<userPlanters[j].sizeX+1;k++){
+                                if(i-2<userPlanters[j].sizeY){
+                                    // print while in planter[j] range
+                                    if(k==0) cout << '|'; // leftmost edge
+                                    else cout << cells[j][k-1][i-2] << '|';
+                                }
+                                else{
+                                    // print while out of planter[j] range
+                                    if(k==0) cout << ' ';
+                                    else cout << "  ";
+                                }
+                            }
+                            cout << ' ';
+                        }
                     }
 			        if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
                     // print footer
-			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, help, quit: ";
-                }
-                // maybe call a Plant insertion function here?
-                // function would need a lot of escape movement and to return to the same point...
-                subPrint();
-            }
-        }
-        void subPrint(){
-            /*
-            - Move the cursor up N lines:
-            \033[<N>A
-            - Move the cursor down N lines:
-            \033[<N>B
-            - Move the cursor forward N columns:
-            \033[<N>C
-            - Move the cursor backward N columns:
-            \033[<N>D
-            */
-            cout << "\033[s"; // save cursor pos
-
-            sort(userPlants.begin(),userPlants.end(),greater<Plant>()); // sort Plant vector by Plant.size, descending
-            printf("\033[%iA",DISPHEIGHT-3); // move to top left of planter display area
-            int fitX[(int)userPlanters.size()]={0}; // fitY per planter
-            int fitY[(int)userPlanters.size()]={0}; // fitX per planter
-            int qty[(int)userPlants.size()]={0}; // qty per plant
-            // Todo: fix placement with multiple plants
-            // Try: an offset that only applies to the next index!!!
-            int xOff[(int)userPlants.size()+1][(int)userPlanters.size()];
-            memset(xOff,0,sizeof(xOff));
-            int yOff[(int)userPlants.size()+1][(int)userPlanters.size()];
-            memset(yOff,0,sizeof(yOff));
-            for(int i=0;i<(int)userPlants.size();i++){ // per plant
-                cout << "\r"; // if plant changed, back to far left
-                qty[i]=userPlants[i].quantity; // set current plant[i] quantity
-                for(int j=0;j<(int)userPlanters.size();j++){ // per planter
-                    fitY[i]=(userPlanters[j].sizeY-yOff[i][j])/userPlants[i].size; // set current plant[i] fitY for current planter[j].sizeY
-                    fitX[i]=fitY[i]*((userPlanters[j].sizeX-xOff[i][j])/userPlants[i].size); // set current plant[i] fitX for current planter[j]/sizeX
-                    xOff[i+1][j]=fitX[i]*userPlants[i].size; // collect offsets for next plant's iteration!!!
-                    yOff[i+1][j]=fitY[i]*userPlants[i].size;
-                    for(int k=0;k<userPlanters[j].sizeY;k++){ // per planter[j].sizeY
-                        printf("\033[1C"); // move to the first planter cell
-                        for(int l=0;l<userPlanters[j].sizeX;l++){ // per planter[j].sizeX
-                            if(qty[i]>0){ // while a qty exists
-                                if(fitX[i]>0&&(l%userPlants[i].size)==0 // while fitX remains, cursor posX mod plant.size==0
-                                        &&(l+userPlants[i].size)<=userPlanters[j].sizeX // cursos posX + plant.size <= planter.sizeX
-                                        &&(l>=xOff[i][j]||k>=yOff[i][j]) // cursor posX/Y is past x/yOff
-                                        &&(k%userPlants[i].size)==0 // cursor posY mod plant.size == 0
-                                        &&(k+userPlants[i].size)<=userPlanters[j].sizeY){ // cursor posY + plant.size <= planter.sizeY
-                                    cout << userPlants[i].name.at(0) << "\033[1C"; // print name.at(0), move cursor right one space
-                                    fitX[i]--; // decrement the fit amount
-                                    qty[i]--; // decrement the quantity
-                                }
-                                else printf("\033[2C");
-                            }
-                        }
-                        cout << "\n"; // needs to advance to the right if planter.number>1
-                        int offset=0; // find offset for next planter
-                        for(int l=0;l<j;l++){
-                            offset+=(userPlanters[l].sizeX*2+2);
-                        }
-                        // move cursor to next planter upper left
-                        // ^note, this needs to account for all planters - not just [j-1] - else positions are wrong with planters>2
-                        if(userPlanters[j].number>1) printf("\033[%iC",offset);
-                    }
-                    printf("\033[%iA\033[%iC",userPlanters[j].sizeY,userPlanters[j].sizeX*2+2); // move cursor to next planter upper left
+			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, help, options, quit: ";
                 }
             }
-
-            cout << "\033[u"; // restore cursor pos
         }
         void change(const int &changePlanter){ // change a specific planter
-            cout << "input your planter dimensions in 'x' 'y': ";
+            cout << "This planter has dimensions: " << userPlanters[changePlanter].sizeX << " by " << userPlanters[changePlanter].sizeY << ", input new dimensions in 'x' 'y': ";
             for(int i=0;i<(int)userPlanters.size();i++){
                 if(userPlanters[i].number==changePlanter){
                     cin >> userPlanters[i];
@@ -437,43 +403,42 @@ class Garden{ // Todo: fix encapsulation, load, print
                     userPlants.erase(userPlants.begin()+i);
             }
         }
+        void dispPlant(){
+            for(int i=0;i<(int)userPlants.size();i++){
+                cout << userPlants[i].name;
+                if(i+1<(int)userPlants.size()) cout << ", ";
+                else cout << ". ";
+            }
+        }
 };
-
-/* *this function from refactor 4 only clears the UI area* */
-/* not needed as of v5
-void initDisplay(){ // clear display area per DISPHEIGHT and print static lines
-	printf("\033[%dA",DISPHEIGHT); // move cursor up to top of UI space
-	for(int i=0;i<DISPHEIGHT;i++){
-			cout << "\33[2K"; // clear current line in loop
-			if(i==0) cout << "Square Foot Gardening v0.4 - by Jacob Seman";
-			if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
-			if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, quit: ";
-	}
-}
-*/
-
 void inputFcn(string &input,Garden &current){ // Todo: fix load
-    current.print(flag);
+    current.newPrint(flag);
     cin >> input;
     if(input=="help"){ // Todo function: show initial functions screen again
         printf("\033[A\33[2K"); // move cursor up, clear line
         flag=!flag;
     }
     else if(input=="load"){ // Todo function: load()
+        flag=0;
         current.parseIn();
         printf("\033[A\33[2K"); // move cursor up, clear line
     }
     else if(input=="save"){ // Todo current.save()
+        flag=0;
+        if(current.dataName=="") current.dataName="default";
         current.save();
         printf("\033[A\33[2K"); // move cursor up, clear line
     }
     else if(input=="new"){ // clears current Garden vectors and updates name
+        flag=0;
         printf("\033[A\33[2K"); // move cursor up, clear line
         cout << "Input your new garden's name, for save/load purposes: ";
         cin >> current;
         printf("\033[A\33[2K"); // move cursor up, clear line
     }
     else if(input=="add"){ // adds planter or plant to current garden
+        flag=0;
+        if(current.dataName=="") current.dataName="default";
         string choice;
         printf("\033[A\33[2K"); // move cursor up, clear line
         cout << "Add a planter or plant? ";
@@ -499,11 +464,18 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
         }
     }
     else if(input=="change"){ // changes planter or plant in current garden
+        flag=0;
+        if(current.dataName=="") current.dataName="default";
         string choice;
         printf("\033[A\33[2K"); // move cursor up, clear line
-        cout << "Change planter or plant? ";
+        cout << "Change garden, planter, or plant? ";
         cin >> choice; // determine planter or plant
         printf("\033[A\33[2K"); // move cursor up, clear line
+        if(choice=="garden"){
+            cout << "Current name: " << current.dataName << ", input a new name for this garden: ";
+            cin >> current.dataName;
+            printf("\033[A\33[2K"); // move cursor up, clear line
+        }
         if(choice=="planter"){
             int pNum;
             cout << "Input planter number to change: ";
@@ -513,6 +485,8 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
         }
         else if(choice=="plant"){
             string pName;
+            cout << "Current plants are: ";
+            current.dispPlant();
             cout << "Input plant name to change: ";
             cin >> pName;
             printf("\033[A\33[2K"); // move cursor up, clear line
@@ -524,6 +498,8 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
         }
     }
     else if(input=="remove"){ // removes planter or plant from current garden
+        flag=0;
+        if(current.dataName=="") current.dataName="default";
         string choice;
         printf("\033[A\33[2K"); // move cursor up, clear line
         cout << "Remove planter or plant? ";
@@ -537,6 +513,8 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             current.remove(pNum);
         }
         else if(choice=="plant"){
+            cout << "Current plants are: ";
+            current.dispPlant();
             string pName;
             cout << "Input plant name to remove: ";
             cin >> pName;
@@ -548,18 +526,54 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             inputFcn(input,current);
         }
     }
-    else if(input=="quit") return;
+    else if(input=="options"){
+        printf("\033[A\33[2K");
+        cout << "Change DISPHEIGHT or default plant space fill character? "
+             << "Input display or character: ";
+        string option;
+        cin >> option;
+        printf("\033[A\33[2K"); // move cursor up, clear line
+        if(option=="display"){
+            cout << "Input a new DISPHEIGHT (default is 20): ";
+            cin >> DISPHEIGHT;
+            printf("\033[A\33[2K"); // move cursor up, clear line
+        }
+        else if(option=="character"){
+            cout << "Input a new ASCII character to use for plant space fill,"
+                 << " or type default to use lower case per plant name: ";
+            string ASCII;
+            cin >> ASCII;
+            if(ASCII=="default") FILL='_';
+            else FILL=(char)ASCII.at(0);
+            printf("\033[A\33[2K"); // move cursor up, clear line
+        }
+
+    }
+    else if(input=="quit"){
+        printf("\033[A\33[2K");
+        cout << "Do you want to save? Input yes, no, or cancel: ";
+        string quitter;
+        cin >> quitter;
+        printf("\033[A\33[2K"); // move cursor up, clear line
+        if(quitter=="yes"){
+            current.save();
+            return;
+        }
+        else if(quitter=="cancel"){
+            printf("\033[A\33[2K");
+            inputFcn(input,current);
+        }
+        else if(quitter=="no") return;
+        else{
+            printf("\033[A\33[2K");
+            inputFcn(input,current);
+        }
+    }
     else{
         printf("\033[A\33[2K");
         inputFcn(input,current);
     }
 }
-
-/* not used in v5
-void load(){ // Todo: function to load garden/planters/plants from file
-}
-*/
-
 int main(){ // expansive things come in minimal mains...
     string input;
     Garden current;
@@ -568,3 +582,10 @@ int main(){ // expansive things come in minimal mains...
     }
 	return 0;
 }
+/*******************************************************************************
+ *  SECRET:
+ * make a secret randomize function that randomly sizes 4-5 planters and loads
+ * plants from the all the save data that it can and places them randomly to
+ * showcase the functionality and dymanic handling.
+ * 
+*******************************************************************************/
