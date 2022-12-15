@@ -2,7 +2,7 @@
 Instructions
 Create a program that helps with managing a square foot garden.
 
-Refactor 5 - Jacob B. Seman
+Refactor 6 - Jacob B. Seman
 *******************************************************************************/
 
 /*******************************************************************************
@@ -61,6 +61,14 @@ Refactor 5 - Jacob B. Seman
  save if yes, exit program
  ******************************************************************************/
 
+/*******************************************************************************
+ * BUG LIST v6
+ * -no loading of data yet
+ * -printing planters works perfectly but more than one plant causes issues
+ *  (a single plant will be populated across all planters perfectly)
+ * -no verbose output of excess plant quantities
+*******************************************************************************/
+
 #include<bits/stdc++.h> // break out into required libraries after completion
 
 using namespace std;
@@ -90,10 +98,10 @@ class Plant{ // Todo: fix encapsulation
             size=newSize;
             quantity=newQuantity;
         }
-        bool operator ==(const string &other)const{
+        bool operator ==(const string &other)const{ // comparator overload for name equivalence
             return(name==other);
         }
-        bool operator >(const Plant &other)const{
+        bool operator >(const Plant &other)const{ // comparator overload for sort(greater<Plant>())
             return(size>other.size);
         }
 		friend istream & operator >> (istream &in,Plant &other){
@@ -131,8 +139,8 @@ class Planter{ // Todo: fix encapsulation
 		}
 };
 
-class Garden{ // Todo: fix encapsulation, save, print
-// container for multiple planters, plants - provision for user data
+class Garden{ // Todo: fix encapsulation, load, print
+// container for multiple planters, plants - provision for display and user data
     protected:
     public:
         string dataName; // name to be used when saving/loading data
@@ -157,7 +165,7 @@ class Garden{ // Todo: fix encapsulation, save, print
             userPlants.push_back(newPlant);
         }
         int countLines(ifstream &inf){  // subroutine for getData
-            inf.open("sfg-v5.txt");
+            inf.open("sfg-v6.txt");
             int i = 0;
             string temp;
             while(getline(inf, temp)){
@@ -167,11 +175,11 @@ class Garden{ // Todo: fix encapsulation, save, print
             return i;
         }
         void getData(ifstream &inf, int n, string* d){  // subroutine for data management
-        //  gets contents of "sfg-v5.txt" line-by-line
+        //  gets contents of "sfg-v6.txt" line-by-line
         //  inf is the ifstream object
         //  n is the number of lines to read in
         //  d is a dynamic array with enough memory to hold the data
-            inf.open("sfg-v5.txt");
+            inf.open("sfg-v6.txt");
             for(int i = 0; i < n; i++){
                 getline(inf, d[i]);
                 // cout << d[i] << endl;
@@ -242,7 +250,7 @@ class Garden{ // Todo: fix encapsulation, save, print
                 
             }
             // else write new line
-            ofstream fout("sfg-v5.txt");
+            ofstream fout("sfg-v6.txt");
             for(int i = 0; i < lineNumber; i++){
                 fout << data[i] << endl;
             }
@@ -251,12 +259,12 @@ class Garden{ // Todo: fix encapsulation, save, print
             fout.close();
 
         }
-        void print(bool flag){ // Todo print current state and note planter number, plant fitment, issues (if any)
+        void print(bool flag){ // Todo print plant fitment quantities, issues (if any)
             if(dataName==""||flag){ // if dataName is empty (ex. after new>reset) or help flag is toggled
 			    printf("\033[%iA",DISPHEIGHT-1); // move to top of display area
                 for(int i=0;i<DISPHEIGHT;i++){ // print instructions/usage information
                     cout << "\33[2K";
-			        if(i==0) cout << "\rSquare Foot Gardening v0.5 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
+			        if(i==0) cout << "\rSquare Foot Gardening v0.6 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
                     if(i==2) cout << "Welcome to Square Foot Gardening!";
                     if(i==3) cout << "You may save your Garden by name,";
                     if(i==4) cout << "and restore it by using the 'save'/'load' functions.";
@@ -279,8 +287,8 @@ class Garden{ // Todo: fix encapsulation, save, print
                 int scanline=1;
                 for(int i=0;i<DISPHEIGHT;i++){
                     cout << "\33[2K";
-			        if(i==0) cout << "\rSquare Foot Gardening v0.5 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
-                    /* test output - just planters and plants w/attributes
+			        if(i==0) cout << "\rSquare Foot Gardening v0.6 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
+                    /* test output - just planters and plants w/attributes in text form
                     if(i==2){
                         // prints planters and attributes by number
                         for(int j=0;j<(int)userPlanters.size();j++){
@@ -345,31 +353,48 @@ class Garden{ // Todo: fix encapsulation, save, print
             cout << "\033[s"; // save cursor pos
 
             sort(userPlants.begin(),userPlants.end(),greater<Plant>()); // sort Plant vector by Plant.size, descending
-            printf("\033[%iA\r",DISPHEIGHT-3); // move to top left of planter display area
+            printf("\033[%iA",DISPHEIGHT-3); // move to top left of planter display area
             int fitX[(int)userPlanters.size()]={0}; // fitY per planter
             int fitY[(int)userPlanters.size()]={0}; // fitX per planter
             int qty[(int)userPlants.size()]={0}; // qty per plant
+            // Todo: fix placement with multiple plants
+            // Try: an offset that only applies to the next index!!!
+            int xOff[(int)userPlants.size()+1][(int)userPlanters.size()];
+            memset(xOff,0,sizeof(xOff));
+            int yOff[(int)userPlants.size()+1][(int)userPlanters.size()];
+            memset(yOff,0,sizeof(yOff));
             for(int i=0;i<(int)userPlants.size();i++){ // per plant
+                cout << "\r"; // if plant changed, back to far left
                 qty[i]=userPlants[i].quantity; // set current plant[i] quantity
                 for(int j=0;j<(int)userPlanters.size();j++){ // per planter
-                    fitY[i]=userPlanters[j].sizeY/userPlants[i].size; // set current plant[i] fitY for current planter[j].sizeY
-                    fitX[i]=fitY[i]*(userPlanters[j].sizeX/userPlants[i].size); // set current plant[i] fitX for current planter[j]/sizeX
+                    fitY[i]=(userPlanters[j].sizeY-yOff[i][j])/userPlants[i].size; // set current plant[i] fitY for current planter[j].sizeY
+                    fitX[i]=fitY[i]*((userPlanters[j].sizeX-xOff[i][j])/userPlants[i].size); // set current plant[i] fitX for current planter[j]/sizeX
+                    xOff[i+1][j]=fitX[i]*userPlants[i].size; // collect offsets for next plant's iteration!!!
+                    yOff[i+1][j]=fitY[i]*userPlants[i].size;
                     for(int k=0;k<userPlanters[j].sizeY;k++){ // per planter[j].sizeY
-                        printf("\033[1C"); // move to the first empty planter cell
+                        printf("\033[1C"); // move to the first planter cell
                         for(int l=0;l<userPlanters[j].sizeX;l++){ // per planter[j].sizeX
                             if(qty[i]>0){ // while a qty exists
-                                if(fitX[i]>0&&(l%userPlants[i].size)==0 // while fitX remains
-                                        &&(l+userPlants[i].size)<=userPlanters[j].sizeX
-                                        &&(k%userPlants[i].size)==0
-                                        &&(k+userPlants[i].size)<=userPlanters[j].sizeY){
-                                    cout << userPlants[i].name.at(0) << "\033[1C";
-                                    fitX[i]--;
-                                    qty[i]--;
-                                        }
+                                if(fitX[i]>0&&(l%userPlants[i].size)==0 // while fitX remains, cursor posX mod plant.size==0
+                                        &&(l+userPlants[i].size)<=userPlanters[j].sizeX // cursos posX + plant.size <= planter.sizeX
+                                        &&(l>=xOff[i][j]||k>=yOff[i][j]) // cursor posX/Y is past x/yOff
+                                        &&(k%userPlants[i].size)==0 // cursor posY mod plant.size == 0
+                                        &&(k+userPlants[i].size)<=userPlanters[j].sizeY){ // cursor posY + plant.size <= planter.sizeY
+                                    cout << userPlants[i].name.at(0) << "\033[1C"; // print name.at(0), move cursor right one space
+                                    fitX[i]--; // decrement the fit amount
+                                    qty[i]--; // decrement the quantity
+                                }
                                 else printf("\033[2C");
                             }
                         }
-                        cout << "\n";
+                        cout << "\n"; // needs to advance to the right if planter.number>1
+                        int offset=0; // find offset for next planter
+                        for(int l=0;l<j;l++){
+                            offset+=(userPlanters[l].sizeX*2+2);
+                        }
+                        // move cursor to next planter upper left
+                        // ^note, this needs to account for all planters - not just [j-1] - else positions are wrong with planters>2
+                        if(userPlanters[j].number>1) printf("\033[%iC",offset);
                     }
                     printf("\033[%iA\033[%iC",userPlanters[j].sizeY,userPlanters[j].sizeX*2+2); // move cursor to next planter upper left
                 }
@@ -420,14 +445,14 @@ void initDisplay(){ // clear display area per DISPHEIGHT and print static lines
 	printf("\033[%dA",DISPHEIGHT); // move cursor up to top of UI space
 	for(int i=0;i<DISPHEIGHT;i++){
 			cout << "\33[2K"; // clear current line in loop
-			if(i==0) cout << "Square Foot Gardening v0.5 - by Jacob Seman";
+			if(i==0) cout << "Square Foot Gardening v0.4 - by Jacob Seman";
 			if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
 			if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, quit: ";
 	}
 }
 */
 
-void inputFcn(string &input,Garden &current){ // Todo: fix load, save
+void inputFcn(string &input,Garden &current){ // Todo: fix load
     current.print(flag);
     cin >> input;
     if(input=="help"){ // Todo function: show initial functions screen again
@@ -530,22 +555,15 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load, save
     }
 }
 
-/* not currently used in v5
+/* not used in v5
 void load(){ // Todo: function to load garden/planters/plants from file
-
 }
 */
 
-int main(){
+int main(){ // expansive things come in minimal mains...
     string input;
     Garden current;
     while(input!="quit"){
-        /* moved inside function for input control
-        current.print(flag);
-        current.parseIn();
-        cin >> input;
-        printf("\033[A\33[2K"); // move cursor up, clear line
-        */
         inputFcn(input,current);
     }
 	return 0;
