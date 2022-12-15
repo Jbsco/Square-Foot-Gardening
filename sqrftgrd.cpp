@@ -2,7 +2,7 @@
  *  INSTRUCTIONS:
  * Create a program that helps with managing a square foot garden.
  * 
- * Refactor 7 - Jacob B. Seman
+ * Refactor 8 - Jacob B. Seman
 *******************************************************************************/
 
 /*******************************************************************************
@@ -72,13 +72,17 @@
 *******************************************************************************/
 
 /*******************************************************************************
- *  TODO: LIST v7
+ *  TODO: LIST v8
  * -fix encapsulation
- * -loading of data yet
  * -verbose output of allocated and excess plant quantities
 *******************************************************************************/
 
-#include<bits/stdc++.h> // break out into required libraries after completion
+#include<iostream>
+#include<fstream>
+#include<cstring>
+#include<vector>
+#include<algorithm>
+#include<sstream>
 
 using namespace std;
 
@@ -98,12 +102,12 @@ class Plant{ // Todo: fix encapsulation
             size=0;
             quantity=0;
         }
-        Plant(string newName,int newSize,int newQuantity){
+        Plant(string &newName,int &newSize,int &newQuantity){
             name=newName;
             size=newSize;
             quantity=newQuantity;
         }
-        void update(string newName,int newSize,int newQuantity){
+        void update(string &newName,int &newSize,int &newQuantity){
             name=newName;
             size=newSize;
             quantity=newQuantity;
@@ -131,12 +135,12 @@ class Planter{ // Todo: fix encapsulation
             sizeX=0;
             sizeY=0;
         }
-        Planter(int newNumber,int newSizeX,int newSizeY){
+        Planter(int &newNumber,int &newSizeX,int &newSizeY){
             number=newNumber;
             sizeX=newSizeX;
             sizeY=newSizeY;
         }
-        void update(int newSizeX,int newSizeY){
+        void update(int &newSizeX,int &newSizeY){
             sizeX=newSizeX;
             sizeY=newSizeY;
         }
@@ -150,7 +154,7 @@ class Planter{ // Todo: fix encapsulation
 		}
 };
 
-class Garden{ // Todo: fix encapsulation, load function
+class Garden{ // Todo: fix encapsulation, verbose allocation results
 // container for multiple planters, plants - provision for display and user data
     protected:
     public:
@@ -160,7 +164,7 @@ class Garden{ // Todo: fix encapsulation, load function
         Garden(){
             dataName="";
         }
-        Garden(string newName){
+        Garden(string &newName){
             dataName=newName;
         }
         friend istream & operator >>(istream &in,Garden &other){
@@ -168,18 +172,18 @@ class Garden{ // Todo: fix encapsulation, load function
             in >> other.dataName;
             return in;
         }
-        void add(const Planter newPlanter){ // add a planter to vector
+        void add(const Planter &newPlanter){ // add a planter to vector
             userPlanters.push_back(newPlanter);
             userPlanters.back().number=userPlanters.size();
         }
-        void add(const Plant newPlant){ // add a plant to vector
+        void add(const Plant &newPlant){ // add a plant to vector
             userPlants.push_back(newPlant);
         }
         int countLines(ifstream &inf){  // subroutine for getData
-            inf.open("sfg-v7.txt");
-            int i = 0;
+            inf.open("sfg-v8.txt");
+            int i=0;
             string temp;
-            while(getline(inf, temp)){
+            while(getline(inf,temp)){
                 i++;
             }
             inf.close();
@@ -190,28 +194,72 @@ class Garden{ // Todo: fix encapsulation, load function
         //  inf is the ifstream object
         //  n is the number of lines to read in
         //  d is a dynamic array with enough memory to hold the data
-            inf.open("sfg-v7.txt");
-            for(int i = 0; i < n; i++){
-                getline(inf, d[i]);
+            inf.open("sfg-v8.txt");
+            for(int i=0;i<n;i++){
+                getline(inf,d[i]);
                 // cout << d[i] << endl;
             }
             inf.close();
         }
-        void parseIn(){ // Todo: parse ifstream lines for dataName and delimit data
+        void parseIn(string &data){ // parse ifstream lines for dataName and delimit data
             // DATA SCHEME:
             // dataName ';' planter number, size x, y [loop all] ';' plant name, size, quantity [loop all] "\n"
             // Ex:
             // dataName;userPlanters[i].number,userPlanters[i].sizeX,userPlanters[i].sizeY;userPlants[j].name,userPlants[j].size,userPlants[j].quantity
             // Eg:
             // "karl;1,4,4,2,16,16,3,5,3;marigold,1,20,peach tree,4,2,tomatoes,3,10"
-            ifstream fin;
-            int lineNumber=countLines(fin);
-            string newName[lineNumber];
+            stringstream ss(data);
+            string chunk[3];
+             // first chunk, load the dataName
             int i=0;
-            while(!fin.eof()){
-                getline(fin,newName[i],';');
-                cout << newName[i] << endl;
+            while(!ss.eof()){
+                if(i<2) getline(ss,chunk[i],';');
+                else getline(ss,chunk[i]);
                 i++;
+            }
+            dataName=chunk[0];
+            // second chunk, load planters
+            i=0;
+            stringstream pltrs(chunk[1]);
+            string subChunk;
+            int pN,pX,pY;
+            while(!pltrs.eof()){
+                getline(pltrs,subChunk,',');
+                if(i==0){
+                    pN=stoi(subChunk);
+                    i++;
+                }
+                else if(i==1){
+                    pX=stoi(subChunk);
+                    i++;
+                }
+                else if(i>=2){
+                    pY=stoi(subChunk);
+                    Planter pltrN(pN,pX,pY);
+                    add(pltrN);
+                    i=0;
+                }
+            }
+            // final chunk, load plants
+            stringstream plts(chunk[2]);
+            string subPChunk, pName;
+            i=0;
+            while(!plts.eof()){
+                getline(plts,subPChunk,',');
+                if(i==0){
+                    pName=subPChunk;
+                    i++;
+                }
+                else if(i==1){
+                    pX=stoi(subPChunk);
+                    i++;
+                }
+                else if(i>=2){
+                    pY=stoi(subPChunk);
+                    Plant pltN(pName,pX,pY);
+                    add(pltN);
+                    i=0;
+                }
             }
         }
         string parseOut(){ // parse ofstream lines for current garden as delimited lines
@@ -242,40 +290,48 @@ class Garden{ // Todo: fix encapsulation, load function
             }
             return out;
         }
-        void load(){ // Todo: parse() subroutine
-            ifstream fin;                       
-            int lineNumber = countLines(fin);
-            string * data = new string[lineNumber];
+        void load(string &loadName){ // load data into string, call parseIn
+            ifstream fin;
+            int lineNumber=countLines(fin);
+            string * data=new string[lineNumber];
             getData(fin, lineNumber, data);
             // call parse() to get requested data
             // initialize garden with data
-        }
-        void save(){ // Todo: parse existing data and check for overwrite
-            ifstream fin;                       
-            int lineNumber = countLines(fin);
-            string * data = new string[lineNumber];
-            getData(fin, lineNumber, data);
-            // check for dataName and overwrite
+            loadName.append(";"); // resolve finding requested name inside of longer name ex: steve, steven
             for(int i=0;i<lineNumber;i++){
-                // check data[i] for "NAME:xxxx"==dataName
-                
+                if(data[i].find(loadName)!=string::npos){
+                    reset();
+                    parseIn(data[i]);
+                    return;
+                }
             }
-            // else write new line
-            ofstream fout("sfg-v7.txt");
-            for(int i = 0; i < lineNumber; i++){
-                fout << data[i] << endl;
+        }
+        void save(){ // parse existing data and check for overwrite, call parseOut
+            ifstream fin;                       
+            int lineNumber=countLines(fin);
+            string * data=new string[lineNumber];
+            getData(fin, lineNumber, data);
+            ofstream fout("sfg-v8.txt");
+            string tempName=dataName; // resolve finding requested name inside of longer name ex: steve, steven
+            tempName.append(";");
+            bool dataFlag=0; // check for cases where string occurs inside of another name ex: steve, steven
+            for(int i=0;i<lineNumber;i++){ // check for dataName and overwrite
+                if(data[i].find(tempName)!=string::npos&&!dataFlag){
+                    fout << parseOut() << endl; // if dataName already exists
+                    dataFlag=1;
+                }
+                else fout << data[i] << endl; // else preserve previous data
             }
-
-            fout << parseOut() << endl;
+            if(!dataFlag) fout << parseOut() << endl;
             fout.close();
 
         }
-        void newPrint(bool flag){ // Todo print plant fitment quantities, issues (if any)
+        void newPrint(bool &flag){ // print plant fitment quantities, TODO: issues (if any)
             if(flag){ // if flag is toggled
 			    printf("\033[%iA\r",DISPHEIGHT-1); // move to top of display area
                 for(int i=0;i<DISPHEIGHT;i++){ // print instructions/usage information
                     cout << "\33[2K";
-			        if(i==0) cout << "Square Foot Gardening v0.7 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
+			        if(i==0) cout << "Square Foot Gardening v0.8 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
                     if(i==2) cout << "Welcome to Square Foot Gardening!";
                     if(i==3) cout << "You may save your Garden by name,";
                     if(i==4) cout << "and restore it by using the 'save'/'load' functions.";
@@ -334,7 +390,7 @@ class Garden{ // Todo: fix encapsulation, load function
                 printf("\033[%iA",DISPHEIGHT-1);
                 for(int i=0;i<DISPHEIGHT;i++){
                     cout << "\33[2K";
-                    if(i==0) cout << "Square Foot Gardening v0.7 - by Jacob Seman";
+                    if(i==0) cout << "Square Foot Gardening v0.8 - by Jacob Seman";
                     if(i==1){ // print corresponding number headers above each planter
                         for(int j=0;j<(int)userPlanters.size();j++){
                             for(int k=0;k<userPlanters[j].sizeX*2+1;k++){
@@ -364,12 +420,12 @@ class Garden{ // Todo: fix encapsulation, load function
                     }
 			        if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
                     // print footer
-			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, change, add, remove, help, options, quit: ";
+			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, add, change, remove, help, options, quit: ";
                 }
             }
         }
         void change(const int &changePlanter){ // change a specific planter
-            cout << "This planter has dimensions: " << userPlanters[changePlanter].sizeX << " by " << userPlanters[changePlanter].sizeY << ", input new dimensions in 'x' 'y': ";
+            cout << "This planter has dimensions: " << userPlanters[changePlanter-1].sizeX << " by " << userPlanters[changePlanter-1].sizeY << ", input new dimensions in 'x' 'y': ";
             for(int i=0;i<(int)userPlanters.size();i++){
                 if(userPlanters[i].number==changePlanter){
                     cin >> userPlanters[i];
@@ -411,19 +467,24 @@ class Garden{ // Todo: fix encapsulation, load function
             }
         }
 };
-void inputFcn(string &input,Garden &current){ // Todo: fix load
+
+void inputFcn(string &input,Garden &current){ // Todo: verbose allocation results
     current.newPrint(flag);
     cin >> input;
-    if(input=="help"){ // Todo function: show initial functions screen again
+    if(input=="help"){ // show initial functions screen again
         printf("\033[A\33[2K"); // move cursor up, clear line
         flag=!flag;
     }
-    else if(input=="load"){ // Todo function: load()
+    else if(input=="load"){ // load data from file
         flag=0;
-        current.parseIn();
         printf("\033[A\33[2K"); // move cursor up, clear line
+        cout << "Input name to load: ";
+        string loadName;
+        cin >> loadName;
+        printf("\033[A\33[2K"); // move cursor up, clear line
+        current.load(loadName);
     }
-    else if(input=="save"){ // Todo current.save()
+    else if(input=="save"){ // save current data
         flag=0;
         if(current.dataName=="") current.dataName="default";
         current.save();
@@ -458,7 +519,7 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             printf("\033[A\33[2K"); // move cursor up, clear line
             current.add(pNew);
         }
-        else{
+        else{ // invalid input, recursive catchall
             printf("\033[A\33[2K");
             inputFcn(input,current);
         }
@@ -492,7 +553,7 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             printf("\033[A\33[2K"); // move cursor up, clear line
             current.change(pName);
         }
-        else{
+        else{ // invalid input, recursive catchall
             printf("\033[A\33[2K");
             inputFcn(input,current);
         }
@@ -521,7 +582,7 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             printf("\033[A\33[2K"); // move cursor up, clear line
             current.remove(pName);
         }
-        else{
+        else{ // invalid input, recursive catchall
             printf("\033[A\33[2K");
             inputFcn(input,current);
         }
@@ -569,11 +630,12 @@ void inputFcn(string &input,Garden &current){ // Todo: fix load
             inputFcn(input,current);
         }
     }
-    else{
+    else{ // invalid input, recursive catchall
         printf("\033[A\33[2K");
         inputFcn(input,current);
     }
 }
+
 int main(){ // expansive things come in minimal mains...
     string input;
     Garden current;
