@@ -2,7 +2,7 @@
  *  INSTRUCTIONS:
  * Create a program that helps with managing a square foot garden.
  * 
- * Refactor 8 - Jacob B. Seman
+ * Version 9 - Jacob B. Seman
 *******************************************************************************/
 
 /*******************************************************************************
@@ -72,7 +72,7 @@
 *******************************************************************************/
 
 /*******************************************************************************
- *  TODO: LIST v8
+ *  TODO: LIST v9
  * -fix encapsulation
  * -verbose output of allocated and excess plant quantities
 *******************************************************************************/
@@ -83,12 +83,14 @@
 #include<vector>
 #include<algorithm>
 #include<sstream>
+#include<ctime>
 
 using namespace std;
 
 int DISPHEIGHT=20; // number of lines to use for terminal "UI", change in options
 char FILL='_'; // default character to use when filling space, change in options
 bool flag=1; // flag for help input
+const string dataFile="sfg-v9.txt"; // filename used across data management functions
 
 class Plant{ // Todo: fix encapsulation
 // to be placed in planters by name, by garden class
@@ -136,11 +138,13 @@ class Planter{ // Todo: fix encapsulation
             sizeY=0;
         }
         Planter(int &newNumber,int &newSizeX,int &newSizeY){
+            if(newSizeY>16) DISPHEIGHT=newSizeY+4; // allow for increasing display height for larger planters
             number=newNumber;
             sizeX=newSizeX;
             sizeY=newSizeY;
         }
         void update(int &newSizeX,int &newSizeY){
+            if(newSizeY>16) DISPHEIGHT=newSizeY+4; // allow for increasing display height for larger planters
             sizeX=newSizeX;
             sizeY=newSizeY;
         }
@@ -180,7 +184,7 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
             userPlants.push_back(newPlant);
         }
         int countLines(ifstream &inf){  // subroutine for getData
-            inf.open("sfg-v8.txt");
+            inf.open(dataFile);
             int i=0;
             string temp;
             while(getline(inf,temp)){
@@ -190,11 +194,11 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
             return i;
         }
         void getData(ifstream &inf, int n, string* d){  // subroutine for data management
-        //  gets contents of "sfg-v7.txt" line-by-line
+        //  gets contents of dataFile line-by-line
         //  inf is the ifstream object
         //  n is the number of lines to read in
         //  d is a dynamic array with enough memory to hold the data
-            inf.open("sfg-v8.txt");
+            inf.open(dataFile);
             for(int i=0;i<n;i++){
                 getline(inf,d[i]);
                 // cout << d[i] << endl;
@@ -209,11 +213,11 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
             // Eg:
             // "karl;1,4,4,2,16,16,3,5,3;marigold,1,20,peach tree,4,2,tomatoes,3,10"
             stringstream ss(data);
-            string chunk[3];
+            string chunk[4];
              // first chunk, load the dataName
             int i=0;
             while(!ss.eof()){
-                if(i<2) getline(ss,chunk[i],';');
+                if(i<3) getline(ss,chunk[i],';');
                 else getline(ss,chunk[i]);
                 i++;
             }
@@ -240,7 +244,7 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
                     i=0;
                 }
             }
-            // final chunk, load plants
+            // third chunk, load plants
             stringstream plts(chunk[2]);
             string subPChunk, pName;
             i=0;
@@ -261,6 +265,8 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
                     i=0;
                 }
             }
+            // final chunk! get FILL preference
+            FILL=chunk[3].at(0);
         }
         string parseOut(){ // parse ofstream lines for current garden as delimited lines
             // DATA SCHEME:
@@ -288,6 +294,8 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
                 out.append(to_string(userPlants[i].quantity));
                 if(i!=(int)userPlants.size()-1) out.append(",");
             }
+            out.append(";");
+            out.push_back(FILL);
             return out;
         }
         void load(string &loadName){ // load data into string, call parseIn
@@ -311,7 +319,7 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
             int lineNumber=countLines(fin);
             string * data=new string[lineNumber];
             getData(fin, lineNumber, data);
-            ofstream fout("sfg-v8.txt");
+            ofstream fout(dataFile);
             string tempName=dataName; // resolve finding requested name inside of longer name ex: steve, steven
             tempName.append(";");
             bool dataFlag=0; // check for cases where string occurs inside of another name ex: steve, steven
@@ -331,16 +339,18 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
 			    printf("\033[%iA\r",DISPHEIGHT-1); // move to top of display area
                 for(int i=0;i<DISPHEIGHT;i++){ // print instructions/usage information
                     cout << "\33[2K";
-			        if(i==0) cout << "Square Foot Gardening v0.8 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
+			        if(i==0) cout << "Square Foot Gardening v0.9 - by Jacob Seman"; // so THAT'S who's responsible for all this kludge
                     if(i==2) cout << "Welcome to Square Foot Gardening!";
                     if(i==3) cout << "You may save your Garden by name,";
                     if(i==4) cout << "and restore it by using the 'save'/'load' functions.";
-                    if(i==6) cout << "A Garden may have multiple Planters of different size.";
+                    if(i==6) cout << "A Garden may have multiple Planters of different size (up to 50x50).";
                     if(i==7) cout << "You may add Plants of any size and name.";
                     if(i==9) cout << "The program will place the largest Plants first,";
-                    if(i==10) cout << "and will alert you if any Plants will not fit in available Planter space.";
-                    if(i==12) cout << "This message may be accessed at any time by typing \"help\",";
-                    if(i==13) cout << "type help again to toggle the Garden display.";
+                    if(i==10) cout << "and will continue placing plants until no more can be allocated.";
+                    if(i==11) cout << "";
+                    if(i==12) cout << "";
+                    if(i==14) cout << "This message may be accessed at any time by typing \"help\",";
+                    if(i==15) cout << "type help again to toggle the Garden display.";
 			        if(i!=DISPHEIGHT-1) cout << "\n"; // newline for all but last
 			        if(i==DISPHEIGHT-1) cout << "Please enter: new, save, load, add, change, remove, help, options, quit: ";
                 }
@@ -390,12 +400,14 @@ class Garden{ // Todo: fix encapsulation, verbose allocation results
                 printf("\033[%iA",DISPHEIGHT-1);
                 for(int i=0;i<DISPHEIGHT;i++){
                     cout << "\33[2K";
-                    if(i==0) cout << "Square Foot Gardening v0.8 - by Jacob Seman";
+                    if(i==0) cout << "Square Foot Gardening v0.9 - by Jacob Seman";
                     if(i==1){ // print corresponding number headers above each planter
                         for(int j=0;j<(int)userPlanters.size();j++){
+                            bool spaceFlag=1; // only for skipping a char if planter.number is double digits
                             for(int k=0;k<userPlanters[j].sizeX*2+1;k++){
                                 if(k==0) cout << userPlanters[j].number; // print planter number on upper left
                                 else if(k==userPlanters[j].sizeX*2) cout << ' '; // prevent overhanging upper right corner
+                                else if(userPlanters[j].number>9&&spaceFlag) spaceFlag=0; // double digits, skip a char
                                 else cout << '_'; // print upper border
                             }
                             cout << ' '; // correct spacing between planters
@@ -630,6 +642,32 @@ void inputFcn(string &input,Garden &current){ // Todo: verbose allocation result
             inputFcn(input,current);
         }
     }
+    else if(input=="random"){
+        flag=0;
+        printf("\033[A\33[2K"); // move cursor up, clear line
+        srand(time(NULL));
+        for(int i=0;i<rand()%5+3;i++){ // for 3-8 iterations
+            int pNum=i+1; // planter number i+1
+            char rName=rand()%26+97; // 97-123
+            string pName(1,rName); // convert char to string
+            srand(time(NULL)*(i+1)); // new seed
+            int pX=rand()%16+1; // planter sizeX from 1-17
+            int pS=rand()%6+1; // plant size from 1-7
+            srand(time(NULL)/(i+1)); // new seed
+            int pY=rand()%16+1; // planter sizeY from 1-17
+            int pQ=rand()%14+1; // plant quantity from 1-15
+            Planter pltrN(pNum,pX,pY);
+            Plant pltN(pName,pS,pQ);
+            current.add(pltrN); // add planter
+            current.add(pltN); // add plant
+            current.dataName.append(pName); // append random char to name
+        }
+        int rChar=rand()%32+33; // ASCII 33-47, 58-64, 91-96, 123-126
+        if(rChar>48&&rChar<56) FILL=rChar+9; // 44-51 -> 58-64, offset up 13
+        else if(rChar>55&&rChar<62) FILL=rChar+35; // 52-57 -> 91-96, offset up 39
+        else if(rChar>61) FILL=rChar+61; // 62-65 -> 123-126, offset up 65
+        else FILL=rChar-1; // random fill char!!!
+    }
     else{ // invalid input, recursive catchall
         printf("\033[A\33[2K");
         inputFcn(input,current);
@@ -644,10 +682,11 @@ int main(){ // expansive things come in minimal mains...
     }
 	return 0;
 }
+
 /*******************************************************************************
  *  SECRET:
- * make a secret randomize function that randomly sizes 4-5 planters and loads
- * plants from the all the save data that it can and places them randomly to
- * showcase the functionality and dymanic handling.
+ * an input of "random" calls a function that randomly sizes 3-8 planters and
+ * plants with random starting letters, generates a garden dataName from those
+ * letters, and also chooses a random fill character!
  * 
 *******************************************************************************/
