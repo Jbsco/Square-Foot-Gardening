@@ -2,54 +2,14 @@
 Instructions
 Create a program that helps with managing a square foot garden.
 
-Must handle plants that are 1x1, 2x2, 3x3 and 4x4
-Must use multiple classes
-Must have an explanation so it can be used by Karl to test
-Menus/ASCII ART/ are optional but not required
-Your application could be demonstrated to the class chosen at random
-Empty hands only on this project.  No sharing of code or designs.
-Just discuss and go your own way.
-https://squarefootgardening.org/about-us/history/
-
-+-+-+-+-+
-| | | | |
-+-+-+-+-+
-| | | | |
-+-+-+-+-+
-| | | | |
-+-+-+-+-+
-| | | | |
-+-+-+-+-+
-
-"Plants"
-"Small"
-"Medium"
-"large"
-Multiple classes
-
-Produce a reasonable report
--Could be fancy
-- 2x2 and 3x3 cannot be in same box
-
-Potential Sample input
-4 onions
-2 dwarve peachs
-3 tomatoes
-1 marigold
-
-Potential Sample output
-You need 4 boxes
-Box 1 1 dwarve peach
-Box 2 dwarve peach
-Box 3 4 onions and 3 tomatoes
-Box 4 marigold
+Refactor 4 - Jacob B. Seman
 *******************************************************************/
 #include<iostream>
 #include<fstream>
 
 using namespace std;
 
-void clearDisp(); // clears a predetermined area of the terminal
+void printDisplay(); // clears a predetermined area of the terminal
 
 const int DISPHEIGHT=20; // number of lines to use for terminal "UI"
 
@@ -62,10 +22,6 @@ class Plant{
 			size=0;
 			name="";
 		}
-		void update(int newSize, string newName){ // initialize
-			size=newSize;
-			name=newName;
-		}
 		friend istream & operator >> (istream &in,Plant &other){
 			in >> other.name >> other.size;
 			return in;
@@ -73,58 +29,29 @@ class Plant{
 };
 
 // individual class Planter(s), containing type Plant(s), setup by user
-// take in dimensions, assign plants to planter, calculate number of plants that fit, etc
 const int MAXPLANTS=10;
-class Planter{ 
-	int sizeX,sizeY,/*pQty[MAXPLANTS],*/pNum;
+class Planter{
+	int sizeX,sizeY,pNum;
 	Plant plantType[MAXPLANTS];
 	public:
 		Planter(){
 			sizeX=0;
 			sizeY=0;
 			pNum=-1;
-			plantType[0].update(0,"");
-			//pQty[0]=0;
 		}
-		/*
-		void update(int newSizeX,int newSizeY,const Plant &newPlantType){
-			sizeX=newSizeX;
-			sizeY=newSizeY;
-			plantType[pNum]=newPlantType;
-			pQty[pNum]=(sizeX/plantType[pNum].size)*(sizeY/plantType[pNum].size);
-			pNum++;
-		}
-		*/
 		friend istream & operator >> (istream &in,Planter &other){
 			other.pNum++;
 			in >> other.sizeX >> other.sizeY >> other.plantType[other.pNum];
-			// other.updateQ(other);
 			cout << "\033[A\33[2K";
 			return in;
 		}
-		/*
-		void updateQ(Planter &other){
-			other.pQty[other.pNum]=(other.sizeX/other.plantType[other.pNum].size)*(other.sizeY/other.plantType[other.pNum].size);
-			other.pNum++;
-		}
-		int quantity(){
-			int i=0,qty=0;
-			while(pQty[i]!=0){
-				qty+=pQty[i];
-				i++;
-			}
-			return (qty);
-		}
-		*/
 		void print(){
-			int fitX=0, fitY=0;
+			int fitX=0,fitY=0,fitT=0;
 			fitY=sizeY/plantType[pNum].size;
 			fitX=(fitY*(sizeX/plantType[pNum].size));
-			cout << "\r\n";
-			for(int i=0;i<DISPHEIGHT-1;i++){
-				cout << "\033[A";
-			}
-			for(int i=0;i<DISPHEIGHT-1;i++){
+			cout << "\r\n"; // correct positioning
+			printf("\033[%iA",DISPHEIGHT-1); // move to top of display area
+			for(int i=0;i<DISPHEIGHT-1;i++){ // print planter and count
 				if(i<sizeY){
 					cout << '|';
 					for(int j=0;j<sizeX;j++){
@@ -133,11 +60,13 @@ class Planter{
 								 &&(i%plantType[pNum].size)==0
 								 &&(i+plantType[pNum].size)<=sizeY){
 							cout << plantType[pNum].name.at(0) << '|';
-							fitX--;
+							fitX--; // maintain accuracy
+							fitT++; // keep a count
 						}
-						else cout << "_|";
+						else cout << "_|"; // empty cell
 					}
 				}
+				if(i==DISPHEIGHT-3) cout << "You can fit " << fitT << ' ' << plantType[pNum].name;
 				cout << "\n";
 			}
 		}
@@ -156,14 +85,6 @@ class Garden{
 			planters[pNum]=newPlanter;
 			pNum++;
 		}
-};
-
-// helper class for easy display of Garden/Planter/Plant setup to CLI
-class Display{
-
-	public:
-		// constructor
-		// display to CLI
 };
 
 // helper class for data management of user Garden/Planter/Plant configurations
@@ -199,21 +120,14 @@ class Data{
 };
 
 int main(){
-	// display basic function and possible inputs "Menu"
-
-		// select data, save, load, modify
-
-	// display selected data configuration
-
-		// update CLI display with changes
-	clearDisp();
+	printDisplay();
 	string select;
 	while(select!="quit"){
 		if(select=="change"){
 			Planter frontYard;
 			cin >> frontYard;
 			cout << "\033[A\33[2K";
-			clearDisp();
+			printDisplay();
 			frontYard.print();
 		}
 		cin >> select;
@@ -221,16 +135,12 @@ int main(){
 	return 0;
 }
 
-void clearDisp(){
-	for(int i=0;i<2;i++){
-		for(int j=0;j<DISPHEIGHT;j++){
-			if(i==0) cout << "\033[A";
-			else{
-				cout << "\33[2K";
-				if(j==0) cout << "Sqare Foot Gardening v0.4 - by Jacob Seman";
-				if(j==DISPHEIGHT-1) cout << "Please enter: save, load, change, add, quit: ";
-				if(j!=DISPHEIGHT-1) cout << "\n";
-			}
-		}
+void printDisplay(){ // clear display area per DISPHEIGHT and print static lines
+	printf("\033[%dA",DISPHEIGHT);
+	for(int i=0;i<DISPHEIGHT;i++){
+			cout << "\33[2K";
+			if(i==0) cout << "Sqare Foot Gardening v0.4 - by Jacob Seman";
+			if(i==DISPHEIGHT-1) cout << "Please enter: save, load, change, add, quit: ";
+			if(i!=DISPHEIGHT-1) cout << "\n";
 	}
 }
